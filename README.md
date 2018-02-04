@@ -34,7 +34,6 @@ Perceptron.fit!(perceptron, train_x, train_y, scores;  print_flag=true)
 
 #### Details of the `fit!` function
 
-```julia
 >    fit!(h::PerceptronClassifer,
 >         X::Array,
 >         y::Array;
@@ -61,7 +60,6 @@ Perceptron.fit!(perceptron, train_x, train_y, scores;  print_flag=true)
 - **`seed`**, (MersenneTwister type), seed for the permutation of the datapoints in case there the data is shuffled.
 - **`pocket`** , (Bool type), if `true` the best weights are saved (in the pocket) during learning.
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
-```  
 
 
 
