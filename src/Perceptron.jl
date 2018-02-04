@@ -1,9 +1,9 @@
 module Perceptron
 
-export PerceptronClassifer
+export PerceptronClassifer, fit!, predict
 
 type PerceptronClassifer{T}
-    W::AbstractMatrix
+    W::AbstractMatrix{T}
     b::AbstractVector{T}
     n_classes::Int
     n_features::Int
@@ -15,18 +15,15 @@ function Base.show{T}(io::IO, p::PerceptronClassifer{T})
     print(io, "PerceptronClassifer{$T}(n_classes=$n_classes, n_features=$n_features)")
 end
 
-PerceptronClassifer(T::Type, n_classes::Int, n_features::Int) = PerceptronClassifer(rand(T, n_features, n_classes),
-                                                                                    zeros(T, n_classes),
-                                                                                    n_classes,
-                                                                                    n_features)
-type ScoreTracker{T}
-    scores::Array{T}
-end
+PerceptronClassifer(T::Type, n_classes::Int, n_features::Int) = PerceptronClassifer{T}(rand(T, n_features, n_classes),
+                                                                                       zeros(T, n_classes),
+                                                                                       n_classes,
+                                                                                       n_features)
 
 """
 Compute the accuracy betwwen `y` and `y_hat`.
 """
-function accuracy(y, y_hat)
+function accuracy(y::AbstractVector, y_hat::AbstractVector)
     acc = 0.
     @fastmath for k = 1:length(y)
             @inbounds  acc += y[k] == y_hat[k]
@@ -40,9 +37,32 @@ The placeholder is used to avoid allocating memory for each matrix-vector multip
 
 - Returns the predicted class.
 """
-function predict(h::PerceptronClassifer, x, placeholder)
-    @fastmath placeholder .= At_mul_B!(placeholder, h.W, x) .+ h.b
-    return indmax(placeholder)
+function predict(h::PerceptronClassifer, x::AbstractVector, class_placeholder::AbstractVector)
+    @fastmath class_placeholder .= At_mul_B!(class_placeholder, h.W, x) .+ h.b
+    return indmax(class_placeholder)
+end
+
+"""
+Function to predict the class for a given example.
+
+- Returns the predicted class.
+"""
+function predict(h::PerceptronClassifer, x::AbstractVector)
+    return @fastmath indmax(h.W' * x .+ h.b)
+end
+
+"""
+Function to predict the class for a given input batch.
+- Returns the predicted class.
+"""
+function predict(h::PerceptronClassifer, X::AbstractMatrix)
+    predictions = zeros(Int32, size(X, 2))
+    class_placeholder = zeros(eltype(h.W), h.n_classes)
+
+    @inbounds for m in 1:length(predictions)
+        predictions[m] = predict(h, view(X,:,m), class_placeholder)
+    end
+    return predictions
 end
 
 """
@@ -74,7 +94,7 @@ end
 - **`shuffle_data`**, (Bool type),  if `true` the data is shuffled at every epoch (in reality we only shuffle indicies for performance).
 
 """
-function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, scores::ScoreTracker;
+function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, scores::Array;
               n_epochs=50, learning_rate=1., print_flag=false,
               compute_accuracy=false, seed=srand(1234), pocket=false,
               shuffle_data=false)
@@ -85,7 +105,7 @@ function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, score
     T = eltype(X)
     learning_rate = T(learning_rate)
 
-    y_signal_placeholder = zeros(T, h.n_classes)
+    class_placeholder = zeros(T, h.n_classes)
     y_preds = zeros(Int64, n_samples)
     data_indices = Array(1:n_samples)
     max_acc = zero(T)
@@ -105,7 +125,7 @@ function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, score
         @inbounds for m in data_indices
             x = view(X, :, m)
 
-            y_hat = predict(h, x, y_signal_placeholder)
+            y_hat = predict(h, x, class_placeholder)
 
             if y[m] != y_hat
                 n_mistakes += 1
@@ -119,7 +139,7 @@ function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, score
 
         if compute_accuracy
              @inbounds for m in  data_indices
-                 y_preds[m] = predict(h, view(X, :, m), y_signal_placeholder)
+                 y_preds[m] = predict(h, view(X, :, m), class_placeholder)
             end
             acc = accuracy(y, y_preds)
             push!(scores, acc)
@@ -141,7 +161,7 @@ function fit!(h::PerceptronClassifer, X::AbstractArray, y::AbstractVector, score
             flush(STDOUT)
         end
     end
-    return
+
 end
 
 
