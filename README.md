@@ -28,7 +28,7 @@ The function `Perceptron.fit!` is used to train the model.
 scores = []
 n_features = size(train_x, 1)
 n_classes =  length(unique(train_y))
-perceptron = PerceptronClassifer(Float32, n_classes, n_features)
+perceptron = PerceptronClassifier(Float32, n_classes, n_features)
 Perceptron.fit!(perceptron, train_x, train_y, scores;  print_flag=true)
 ```
 
