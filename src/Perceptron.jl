@@ -1,6 +1,9 @@
 module Perceptron
 
+using MetadataTools,  DocStringExtensions
+
 export PerceptronClassifier, fit!, predict
+
 
 type PerceptronClassifier{T}
     W::AbstractMatrix{T}
@@ -21,6 +24,8 @@ PerceptronClassifier(T::Type, n_classes::Int, n_features::Int) = PerceptronClass
                                                                                        n_features)
 
 """
+$(SIGNATURES)
+
 Compute the accuracy betwwen `y` and `y_hat`.
 """
 function accuracy(y::AbstractVector, y_hat::AbstractVector)
@@ -32,6 +37,8 @@ function accuracy(y::AbstractVector, y_hat::AbstractVector)
 end
 
 """
+$(SIGNATURES)
+
 Predicts the class for a given input in a `PerceptronClassifier`.
 The placeholder is used to avoid allocating memory for each matrix-vector multiplication.
 
@@ -43,6 +50,8 @@ function predict(h::PerceptronClassifier, x::AbstractVector, class_placeholder::
 end
 
 """
+$(SIGNATURES)
+
 Function to predict the class for a given example.
 
 - Returns the predicted class.
@@ -52,6 +61,8 @@ function predict(h::PerceptronClassifier, x::AbstractVector)
 end
 
 """
+$(SIGNATURES)
+
 Function to predict the class for a given input batch.
 - Returns the predicted class.
 """
@@ -66,6 +77,8 @@ function predict(h::PerceptronClassifier, X::AbstractMatrix)
 end
 
 """
+$(SIGNATURES)
+
 >    fit!(h::PerceptronClassifier,
 >         X::Array,
 >         y::Array;

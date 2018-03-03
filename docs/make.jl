@@ -1,0 +1,4 @@
+using Documenter, Perceptron
+
+makedocs()
+
