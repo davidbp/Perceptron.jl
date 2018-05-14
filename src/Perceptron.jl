@@ -57,7 +57,8 @@ Function to predict the class for a given example.
 - Returns the predicted class.
 """
 function predict(h::PerceptronClassifier, x::AbstractVector)
-    return @fastmath indmax(h.W' * x .+ h.b)
+    score = h.W' * x .+ h.b
+    return @fastmath indmax(score), score
 end
 
 """
